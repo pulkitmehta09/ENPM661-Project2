@@ -8,6 +8,7 @@ Created on Fri Feb 25 01:35:13 2022
 
 import numpy as np
 import cv2
+from queue import PriorityQueue
 
 def getStartNode():
     flag = False
@@ -87,7 +88,7 @@ def ActionMove(node,direction):
     else:
         new_node = node
         cost = 0
-        
+
     return new_node, cost
 
 
@@ -129,3 +130,10 @@ def isObstacle(node,map):
         flag = True
     return flag
     
+
+def isnotValid(node):
+    flag = True
+    if (node[1] > 0 and node[0] > 0 and node[1] < 250 and node[0] < 400):
+        flag = False
+    
+    return flag

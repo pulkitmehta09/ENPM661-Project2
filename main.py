@@ -9,10 +9,9 @@ Created on Fri Feb 25 00:42:42 2022
 from functions import *
 import numpy as np
 import cv2
-from queue import PriorityQueue
+
 
 map_img, map = create_map()
-
 
 def Djikstra(start_node, goal_node):
     
@@ -37,7 +36,7 @@ def Djikstra(start_node, goal_node):
 
     while not(OpenList.empty() and isgoal):
         node = OpenList.get()
-        node = node[1]
+        node = node[1][:]
         open_set.remove(tuple(node[:2]))
         ClosedList.append(node)
         closed_set.add(tuple(node[:2]))
@@ -47,7 +46,7 @@ def Djikstra(start_node, goal_node):
         else:
             for direction in moves:
                 new_node, cost = ActionMove(node, direction)
-                if not ((tuple(new_node[:2]) in closed_set) and isObstacle(node[:2],map)):
+                if not ((tuple(new_node[:2]) in closed_set) and isObstacle(new_node[:2],map) and isnotValid(new_node[:2])):
                     if not (tuple(new_node[:2]) in open_set):
                         new_node[3] = node[2]
                         new_node[4] = node[4] + cost
@@ -63,9 +62,9 @@ def Djikstra(start_node, goal_node):
         print(count)
         count+=1                    
         if (success):
-            return ClosedList
             break
  
+
 
 
 start_node = getStartNode()
