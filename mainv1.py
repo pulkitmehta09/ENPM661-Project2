@@ -11,6 +11,15 @@ from functionsv1 import *
 import numpy as np
 
 map = create_map()
+
+print("""
+This program uses Djikstra's method for searching a path from user defined start and goal location in a given map.
+The user needs to provide the coordinates of the start and goal node according to the format given below:
+For example: For a node with x and y-coordinates as 100 and 200, 
+Input: 100,200
+(Note: Only comma seperated values are allowed)
+	""")
+
 start_node = getStartNode(map)
 goal_node = getGoalNode(map)
 

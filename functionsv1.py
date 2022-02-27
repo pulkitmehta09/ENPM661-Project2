@@ -78,14 +78,14 @@ def getStartNode(map):
     """
     flag = False
     while not flag:
-        start_node = [int(item) for item in input("Enter the start node:").split(',')]
+        start_node = [int(item) for item in input("\n Please enter the start node: ").split(',')]
         if (len(start_node) == 2 and (0 <= start_node[0] <= 400) and (0 <= start_node[1] <= 250)):
             if not isObstacle(start_node,map):
                 flag = True
             else:   
-                print("Start node collides with obstacle")
+                print("Start node collides with obstacle \n")
         else:
-            print("Enter a valid start node")
+            print("The input node location does not exist in the map, please enter a valid start node.\n")
             flag = False
     
         
@@ -104,14 +104,14 @@ def getGoalNode(map):
     """
     flag = False
     while not flag:
-        goal_node = [int(item) for item in input("Enter the goal node:").split(',')]
+        goal_node = [int(item) for item in input("\n Please enter the goal node: ").split(',')]
         if (len(goal_node) == 2 and (0 <= goal_node[0] <= 400) and (0 <= goal_node[1] <= 250)):
             if not isObstacle(goal_node,map):
                 flag = True
             else:
-                print("Goal node collides with obstacle")
+                print("Goal node collides with obstacle \n")
         else:
-            print("Enter a valid goal node")
+            print("The input node location does not exist in the map, please enter a valid goal node.\n")
             flag = False
         
     return goal_node
@@ -142,7 +142,7 @@ def explore(node,map):
 
 def Djikstra(start_node, goal_node, map):
 
-
+    print(" Performing Djikstra search...")
 
     q = PriorityQueue()
     visited = set([])
@@ -207,6 +207,9 @@ def Djikstra(start_node, goal_node, map):
 
 
 def Animate(node_objects, path, map):
+    
+    print(" Creating animation video...")
+    
     width = 400
     height = 250
     FPS = 240
@@ -233,3 +236,4 @@ def Animate(node_objects, path, map):
         video.write(img)
     
     video.release()
+    print(" Animation video saved.")
