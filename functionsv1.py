@@ -11,32 +11,43 @@ import numpy as np
 import cv2
 from queue import PriorityQueue
 import time
+from cv2 import VideoWriter, VideoWriter_fourcc 
 
-def line(p1,p2,x,y):
+def line(p1, p2, x, y, t):
     
- 
-    f = ((p2[1] - p1[1]) * (x - p1[0])) / ( p2[0] - p1[0]) + p1[1] - y
+    f = ((p2[1] - p1[1]) * (x - p1[0])) / ( p2[0] - p1[0]) + (p1[1] + t - y)
     
     return f
 
-def circle(center,r,x,y):
-    c = (x - center[0])**2 + (y - center[1])**2 - r**2
+def circle(center, r, x, y, t):
+    c = (x - center[0])**2 + (y - center[1])**2 - (r + t)**2
     
     return c
 
 
 def create_map():
     map = np.zeros((250,400))
+    r = 0   # radius
+    c = 5   # clearance
+    t = r + c   # Total clearance
     for i in range(map.shape[1]):
         for j in range(map.shape[0]):
-            if (circle((300,65),40,i,j) < 0):
+            if (circle((300,65),40,i,j,t) < 0):
                 map[j,i] = 1
-            if (line((36,65),(115,40),i,j) < 0 and line((36,65),(105,150),i,j) > 0 and line((80,70),(105,150),i,j) < 0):
+            if (line((36,65),(115,40),i,j,t) < 0 and line((36,65),(105,150),i,j,t) > 0 and line((80,70),(105,150),i,j,t) < 0):
                 map[j,i] = 1
-            if (i > 165 and i < 235 and line((165,129.79),(200,109.59),i,j) < 0 and line((200,109.59),(235,129.79),i,j) < 0 and line((165,170.20),(200,190.41),i,j) > 0 and line((200,190.41),(235,170.20),i,j) > 0):
+            if (i > (165-t) and i < (235+t) and line((165,129.79),(200,109.59),i,j,t) < 0 and line((200,109.59),(235,129.79),i,j,t) < 0 and line((165,170.20),(200,190.41),i,j,t) > 0 and line((200,190.41),(235,170.20),i,j,t) > 0):
                 map[j,i] = 1
-            if (line((80,70),(105,150),i,j) > 0 and line((36,65),(115,40),i,j) < 0 and line((80,70),(115,40),i,j) > 0):
+            if (line((80,70),(105,150),i,j,t) > 0 and line((36,65),(115,40),i,j,t) < 0 and line((80,70),(115,40),i,j,t) > 0):
                 map[j,i] = 1
+            if (i > 0 and i < t):
+                map[j,i] = 1
+            if (i < 400 and i > (400-t)):
+                map[j,i] = 1
+            if (j > 0 and j < t):
+                map[j][i] = 1
+            if (j < 250 and j >(250 - t)):
+                map[j][i] = 1
                 
     return map
 
@@ -76,6 +87,7 @@ def getStartNode(map):
         else:
             print("Enter a valid start node")
             flag = False
+    
         
     return start_node
 
@@ -130,6 +142,8 @@ def explore(node,map):
 
 def Djikstra(start_node, goal_node, map):
 
+
+
     q = PriorityQueue()
     visited = set([])
     node_objects = {}
@@ -174,15 +188,48 @@ def Djikstra(start_node, goal_node, map):
                 node_objects[str(next_node)] = new_node
                 q.put([absolute_cost, new_node.pos])
 
-    
+    # Backtrack
+    rev_path = []        
     goal = node_objects[str(goal_node)]
+    rev_path.append(goal_node)
     parent_node = goal.parent
     while parent_node:
         img_show[parent_node.pos[1], parent_node.pos[0],:] = np.array([255,0,0])
+        rev_path.append(parent_node.pos)
         parent_node = parent_node.parent
-    cv2.imshow('img', img_show)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('img', img_show)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    
+    path = list(reversed(rev_path))
+
+    return visited, node_objects, path
 
 
-
+def Animate(node_objects, path, map):
+    width = 400
+    height = 250
+    FPS = 240
+    fourcc = VideoWriter_fourcc(*'MP42')
+    video = VideoWriter('./Djikstra.avi', fourcc, float(FPS), (width, height))
+    
+    
+    nodes = node_objects.values()
+    nodes = list(nodes)
+    img = np.dstack([map.copy() * 0, map.copy() * 0, map.copy() * 255])
+    img = np.uint8(img)
+    
+    # cv2.circle(img, (start_node[1], start_node[0]), 5, (255, 0, 0), 1)
+    # cv2.circle(img, (goal_node[1], goal_node[0]), 5, (255, 0, 0), 1)
+    video.write(img)
+    
+    
+    for i in range(len(nodes)):
+        img[nodes[i].pos[1], nodes[i].pos[0], :] = np.array([0,255,0])
+        video.write(img)
+        
+    for i in range(len(path) - 1):
+        img[path[i][1], path[i][0], :] = np.array([255,0,0])
+        video.write(img)
+    
+    video.release()
