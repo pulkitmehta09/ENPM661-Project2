@@ -5,7 +5,7 @@ INSTRUCTIONS:
 
 1. Download all the files into a folder.
 
-// The functions.py file contains all the function definitions.
+The functions.py file contains all the function definitions.
 
 2. Open terminal and run the python file from the folder as:
 
