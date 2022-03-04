@@ -1,5 +1,4 @@
 # ENPM-661 Project 2
-# Author: Pulkit Mehta (UID: 117551693) 
 
 INSTRUCTIONS:
 
