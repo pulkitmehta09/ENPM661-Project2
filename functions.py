@@ -9,6 +9,7 @@ Project 1
 UID: 117551693
 """
 
+
 # ---------------------------------------------------------------------------------
 # IMPORTING PACKAGES
 # ---------------------------------------------------------------------------------
@@ -17,6 +18,7 @@ import numpy as np
 from queue import PriorityQueue
 from cv2 import VideoWriter, VideoWriter_fourcc 
 import Node
+
 
 # ---------------------------------------------------------------------------------
 # FUNCTION DEFINITIONS
@@ -37,7 +39,7 @@ def line(p1, p2, x, y, t):
     y : double
         y-coordinate of point of interest..
     t : double
-        offset from line.
+        offset from line for provided clearance.
 
     Returns
     -------
@@ -66,7 +68,7 @@ def circle(center, r, x, y, t):
     y : double
         y-coordinate of point of interest..
     t : double
-        offset from the circle.
+        offset from the circle for provided clearance.
 
     Returns
     -------
@@ -94,22 +96,29 @@ def create_map():
     r = 0                                       # radius
     c = 5                                       # clearance
     t = r + c                                   # Total clearance
+    
+    # Clearance is also added in the same color code, so the obstacles are appear to be inflated.
    
     for i in range(map.shape[1]):
         for j in range(map.shape[0]):
             
-            # Circlular Obstacle 
+            # Circular Obstacle, 
             if (circle((300,65),40,i,j,t) < 0):
                 map[j,i] = 1
            
             # Arrow Obstacle    
-            if (line((36,65),(115,40),i,j,t) < 0 and line((36,65),(105,150),i,j,t) > 0 and line((80,70),(105,150),i,j,t) < 0):
+            if (line((36,65),(115,40),i,j,t) < 0 and line((36,65),(105,150),i,j,t) > 0 
+                and line((80,70),(105,150),i,j,t) < 0):
                 map[j,i] = 1
-            if (line((80,70),(105,150),i,j,t) > 0 and line((36,65),(115,40),i,j,t) < 0 and line((80,70),(115,40),i,j,t) > 0):
+            if (line((80,70),(105,150),i,j,t) > 0 and line((36,65),(115,40),i,j,t) < 0 
+                and line((80,70),(115,40),i,j,t) > 0):
                 map[j,i] = 1
             
             # Hexagonal Obastacle
-            if (i > (165-t) and i < (235+t) and line((165,129.79),(200,109.59),i,j,t) < 0 and line((200,109.59),(235,129.79),i,j,t) < 0 and line((165,170.20),(200,190.41),i,j,t) > 0 and line((200,190.41),(235,170.20),i,j,t) > 0):
+            if (i > (165-t) and i < (235+t) and line((165,129.79),(200,109.59),i,j,t) < 0 
+                and line((200,109.59),(235,129.79),i,j,t) < 0 
+                and line((165,170.20),(200,190.41),i,j,t) > 0 
+                and line((200,190.41),(235,170.20),i,j,t) > 0):
                 map[j,i] = 1
             
             # Boundaries of the map
@@ -235,7 +244,7 @@ def explore(node,map):
     return valid_paths
 
 
-def Djikstra(start_node, goal_node, map):
+def Dijkstra(start_node, goal_node, map):
     """
     Performs Djikstra's search.
 
@@ -255,7 +264,7 @@ def Djikstra(start_node, goal_node, map):
 
     """
 
-    print(" Performing Djikstra search...")
+    print("\n Performing Djikstra search...\n")
 
     q = PriorityQueue()                                                              # Priority queue for open nodes
     visited = set([])                                                                # Set conataining visited nodes
@@ -269,10 +278,9 @@ def Djikstra(start_node, goal_node, map):
     
     distance[str(start_node)] = 0                                                    # Start node has cost of 0
     visited.add(str(start_node))                                                     # Add start node to visited list
-    node = Node(start_node,0,None)                                                   # Create instance of Node
+    node = Node.Node(start_node,0,None)                                              # Create instance of Node
     node_objects[str(node.pos)] = node                                               # Assigning the node value in dictionary
     q.put([node.cost, node.pos])                                                     # Inserting the start node in priority queue
-    reached = False
 
     while not q.empty():                                                             # Iterate until the queue is empty
         node_temp = q.get()                                                          # Pop node from queue
@@ -280,24 +288,23 @@ def Djikstra(start_node, goal_node, map):
                                      
         # Check of the node is the goal node
         if node_temp[1][0] == goal_node[0] and node_temp[1][1] == goal_node[1]:      
-            print("Goal Reached!!!")
-            node_objects[str(goal_node)] = Node(goal_node,node_temp[0], node)
-            reached = True
+            print(" Goal Reached!!!\n")
+            node_objects[str(goal_node)] = Node.Node(goal_node,node_temp[0], node)
             break
         
         for next_node, cost in explore(node,map):                                    # Explore neighbors
 
-            if str(next_node) in visited: 
-                cost_temp = cost + distance[str(node.pos)]
-                if cost_temp < distance[str(next_node)]:
+            if str(next_node) in visited:                                            # Check if action performed next node is already visited
+                cost_temp = cost + distance[str(node.pos)]                           # Cost to come
+                if cost_temp < distance[str(next_node)]:                             # Update cost
                     distance[str(next_node)] = cost_temp
                     node_objects[str(next_node)].parent = node
 
-            else:
+            else:                                                                    # If next node is not visited
                 visited.add(str(next_node))
                 absolute_cost = cost + distance[str(node.pos)]
                 distance[str(next_node)] = absolute_cost
-                new_node = Node(next_node, absolute_cost, node_objects[str(node.pos)])
+                new_node = Node.Node(next_node, absolute_cost, node_objects[str(node.pos)])
                 node_objects[str(next_node)] = new_node
                 q.put([absolute_cost, new_node.pos])
 
@@ -323,15 +330,15 @@ def GeneratePath(node_objects, goal_node):
         Path from initial to goal node.
 
     """
-    rev_path = []        
-    goal = node_objects[str(goal_node)]
-    rev_path.append(goal_node)
-    parent_node = goal.parent
-    while parent_node:
-        rev_path.append(parent_node.pos)
-        parent_node = parent_node.parent
+    rev_path = []                                                                    # Empty reversed path list 
+    goal = node_objects[str(goal_node)]                                              # Get the goal from dictionary
+    rev_path.append(goal_node)                                                       # Add the goal to reversed path list 
+    parent_node = goal.parent                                                        # Get parent of goal node
+    while parent_node:                              
+        rev_path.append(parent_node.pos)                                             # Add coordinates of parent node
+        parent_node = parent_node.parent                                             # Update parent
     
-    path = list(reversed(rev_path))
+    path = list(reversed(rev_path))                                                  # Forward path
 
     return node_objects, path
 
@@ -359,23 +366,23 @@ def Animate(node_objects, path, map):
     
     width = 400
     height = 250
-    FPS = 240
+    FPS = 240                                                                       
     fourcc = VideoWriter_fourcc(*'MP42')
     video = VideoWriter('./Djikstra.avi', fourcc, float(FPS), (width, height))
     
     
-    nodes = node_objects.values()
+    nodes = node_objects.values()                                                    # Get the values from dictionary(objects of class Node)
     nodes = list(nodes)
-    img = np.dstack([map.copy() * 0, map.copy() * 0, map.copy() * 255])
+    img = np.dstack([map.copy() * 0, map.copy() * 0, map.copy() * 255])              # Convert binary map image to RGB
     img = np.uint8(img)
     video.write(img)
     
     
-    for i in range(len(nodes)):
+    for i in range(len(nodes)):                                                      # Add visited nodes to video frame
         img[nodes[i].pos[1], nodes[i].pos[0], :] = np.array([0,255,0])
         video.write(img)
         
-    for i in range(len(path) - 1):
+    for i in range(len(path) - 1):                                                   # Add generated path to video frame 
         img[path[i][1], path[i][0], :] = np.array([255,0,0])
         video.write(img)
     
@@ -395,12 +402,13 @@ def initialize():
     
     print("""
       
-           _______         __   __   __  ___      _______.___________..______          ___           
-          |       \       |  | |  | |  |/  /     /       |           ||   _  \        /   \          
-          |  .--.  |      |  | |  | |  '  /     |   (----`---|  |----`|  |_)  |      /  ^  \         
-          |  |  |  |.--.  |  | |  | |    <       \   \       |  |     |      /      /  /_\  \        
-          |  '--'  ||  `--'  | |  | |  .  \  .----)   |      |  |     |  |\  \----./  _____  \       
-          |_______/  \______/  |__| |__|\__\ |_______/       |__|     | _| `._____/__/     \__\      
+         
+           _______   __         __   __  ___      _______.___________..______          ___           
+          |       \ |  |       |  | |  |/  /     /       |           ||   _  \        /   \          
+          |  .--.  ||  |       |  | |  '  /     |   (----`---|  |----`|  |_)  |      /  ^  \         
+          |  |  |  ||  | .--.  |  | |    <       \   \       |  |     |      /      /  /_\  \        
+          |  '--'  ||  | |  `--'  | |  .  \  .----)   |      |  |     |  |\  \----./  _____  \       
+          |_______/ |__|  \______/  |__|\__\ |_______/       |__|     | _| `._____/__/     \__\      
                                                                                                      
          ___       __        _______   ______   .______       __  .___________. __    __  .___  ___. 
         /   \     |  |      /  _____| /  __  \  |   _  \     |  | |           ||  |  |  | |   \/   | 
@@ -409,10 +417,11 @@ def initialize():
      /  _____  \  |  `----.|  |__| | |  `--'  | |  |\  \----.|  |     |  |     |  |  |  | |  |  |  | 
     /__/     \__\ |_______| \______|  \______/  | _| `._____||__|     |__|     |__|  |__| |__|  |__| 
                                                                                                      
+                                                                                                             
           
     --------------------------------------------------------------------------------------------------------------------
          
-    THIS PROGRAM USES DJIKSTRA'S ALGORITHM FOR SERACHING A PATH FROM USER DEFINED START AND GOAL LOCATION IN A GIVEN MAP.
+    THIS PROGRAM USES DJIKSTRA'S ALGORITHM FOR SEARCHING A PATH FROM USER DEFINED START AND GOAL LOCATION IN A GIVEN MAP.
     
     --------------------------------------------------------------------------------------------------------------------
     
