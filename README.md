@@ -15,3 +15,5 @@ $ python3 Dijkstra-pathplanning-Pulkit-Mehta.py
 or run the file python3 Dijkstra-pathplanning-Pulkit-Mehta.py from any other IDE and follow the instructions on the terminal.
 
 The generated video will be saved in the same folder containing all the above files.
+
+![](https://github.com/pulkitmehta09/ENPM661-Project2/blob/main/output.gif)
